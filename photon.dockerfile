@@ -22,7 +22,9 @@ ARG PGBOUNCER_CFLAGS="-O2 -pipe -fstack-protector-strong -D_FORTIFY_SOURCE=3"
 ARG PGBOUNCER_LDFLAGS="-Wl,-z,relro,-z,now -Wl,--as-needed"
 
 USER root
+# Top row is security updates for the base image. Below that is build requirements.
 RUN tdnf install -y \
+      sqlite-libs libssh2 zlib libsolv krb5 \
       binutils \
       c-ares-devel \
       gcc \
