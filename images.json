@@ -1,0 +1,32 @@
+{
+  "image": "docker.io/pcm0/pgbouncer",
+  "pgbouncer": [
+    {
+      "version": "1.25.2",
+      "series": "1.25",
+      "commit": "13a344f2625381296fc02e29b986a11be9c6b983",
+      "sha256": "50a59fd102e6dce89cf05ff7b07c5cb2bd8e74b4ea24ca192b27cc508634c780",
+      "channel": "stable"
+    }
+  ],
+  "variants": [
+    {
+      "dockerfile": "fedora.dockerfile",
+      "tag": "fedora44",
+      "os": "fedora44",
+      "latest": true
+    },
+    {
+      "dockerfile": "photon.dockerfile",
+      "tag": "photon5",
+      "os": "photon5",
+      "latest": false
+    },
+    {
+      "dockerfile": "rockylinux.dockerfile",
+      "tag": "rocky10",
+      "os": "rocky10",
+      "latest": false
+    }
+  ]
+}
