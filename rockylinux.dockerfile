@@ -13,7 +13,7 @@ ARG IMAGE_URL="https://hub.docker.com/r/pcm0/pgbouncer"
 ARG IMAGE_DOCUMENTATION="https://github.com/PaulChristophel/docker-pgbouncer#readme"
 ARG IMAGE_REVISION="unknown"
 ARG IMAGE_CREATED="1970-01-01T00:00:00Z"
-ARG IMAGE_LICENSES="ISC"
+ARG IMAGE_LICENSES="AGPL-3.0-or-later"
 
 FROM $BUILD_BASE AS pgbouncer-builder
 ARG PGBOUNCER_VERSION=1.25.2
