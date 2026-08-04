@@ -1,7 +1,8 @@
 # Containerfile.cnpg-pgbouncer-source
 
-ARG BASE=docker.io/rockylinux/rockylinux:10-ubi-micro@sha256:23f5d986ef65b6f3c84299a7bd065b51beea2e917bd8f0a11bf0a9a53774735c
-ARG BUILD_BASE=docker.io/rockylinux/rockylinux:10@sha256:e372170ca8630f0f03e9b70fdd0bf4a3ce3426b0de7cdba615f06337389de176
+
+ARG BASE=docker.io/rockylinux/rockylinux:10-ubi-micro@sha256:187d27b1e4d4305bac2a965fe1cb2de29f2fa85f93bcd60af55daf1a697f19ae
+ARG BUILD_BASE=docker.io/rockylinux/rockylinux:10@sha256:827d37bc128288ccf160ee318bb3cb92d591164cb217e92f8bc61e3982ae1834
 ARG IMAGE_TITLE="CloudNativePG PgBouncer on Rocky Linux"
 ARG IMAGE_DESCRIPTION="PgBouncer built from upstream source on Rocky Linux for CloudNativePG."
 ARG IMAGE_AUTHORS="Paul Christophel <pmartin@gatech.edu>"

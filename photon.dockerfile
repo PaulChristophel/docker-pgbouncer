@@ -1,6 +1,6 @@
 # Containerfile.cnpg-pgbouncer-source
 
-ARG BASE=docker.io/photon:5.0@sha256:6db86de5ffc11d5c55e59d23790ad526b68e5bca4f030cb6a94e6136280866dd
+ARG BASE=docker.io/photon:5.0@sha256:ab4b68e15c8ff6b9c79ba525f696260f772c711761d576dd53bf43c351c9a504
 ARG IMAGE_TITLE="CloudNativePG PgBouncer on Photon"
 ARG IMAGE_DESCRIPTION="PgBouncer built from upstream source on Photon OS for CloudNativePG."
 ARG IMAGE_AUTHORS="Paul Christophel <pmartin@gatech.edu>"
@@ -22,9 +22,7 @@ ARG PGBOUNCER_CFLAGS="-O2 -pipe -fstack-protector-strong -D_FORTIFY_SOURCE=3"
 ARG PGBOUNCER_LDFLAGS="-Wl,-z,relro,-z,now -Wl,--as-needed"
 
 USER root
-# Top row is security updates for the base image. Below that is build requirements.
 RUN tdnf install -y \
-      sqlite-libs libssh2 zlib libsolv krb5 \
       binutils \
       c-ares-devel \
       gcc \
