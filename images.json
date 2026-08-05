@@ -27,6 +27,12 @@
       "tag": "rocky10",
       "os": "rocky10",
       "latest": false
+    },
+    {
+      "dockerfile": "almalinux.dockerfile",
+      "tag": "alma10",
+      "os": "alma10",
+      "latest": false
     }
   ]
 }

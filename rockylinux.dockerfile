@@ -87,6 +87,10 @@ RUN mkdir -p /mnt/rootfs \
       openssl-libs \
       postgresql \
       shadow-utils \
+ && dnf upgrade -y \
+      --installroot=/mnt/rootfs \
+      --releasever=10 \
+      --setopt=install_weak_deps=False \
  && dnf clean all --installroot=/mnt/rootfs \
  && rm -rf /mnt/rootfs/var/cache/dnf
 

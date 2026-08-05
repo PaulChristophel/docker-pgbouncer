@@ -111,6 +111,7 @@ RUN dnf upgrade -y \
       openssl-libs \
       postgresql \
       shadow-utils \
+ && dnf upgrade -y \
  && dnf clean all \
  && rm -rf /var/cache/dnf \
  && groupadd -r --gid 996 pgbouncer \

@@ -1,8 +1,10 @@
 # Containerfile.cnpg-pgbouncer-source
 
-ARG BASE=docker.io/photon:5.0@sha256:ab4b68e15c8ff6b9c79ba525f696260f772c711761d576dd53bf43c351c9a504
-ARG IMAGE_TITLE="CloudNativePG PgBouncer on Photon"
-ARG IMAGE_DESCRIPTION="PgBouncer built from upstream source on Photon OS for CloudNativePG."
+
+ARG BASE=docker.io/almalinux:10-kitten-minimal@sha256:515a829404b2b5d25d0da6f6c8359bcc83d54974c9ce829a8854ac3f792a20ed
+ARG BUILD_BASE=docker.io/almalinux:10-kitten@sha256:95deefe15f77c78b69fcece224a040a6f726ea4c3bc30cf254a0655795136042
+ARG IMAGE_TITLE="CloudNativePG PgBouncer on AlmaLinux"
+ARG IMAGE_DESCRIPTION="PgBouncer built from upstream source on AlmaLinux for CloudNativePG."
 ARG IMAGE_AUTHORS="Paul Christophel <pmartin@gatech.edu>"
 ARG IMAGE_VENDOR="Paul Christophel"
 ARG IMAGE_OWNER="Paul Christophel <pmartin@gatech.edu>"
@@ -14,7 +16,7 @@ ARG IMAGE_REVISION="unknown"
 ARG IMAGE_CREATED="1970-01-01T00:00:00Z"
 ARG IMAGE_LICENSES="AGPL-3.0-or-later"
 
-FROM $BASE AS pgbouncer-builder
+FROM $BUILD_BASE AS pgbouncer-builder
 ARG PGBOUNCER_VERSION=1.25.2
 ARG PGBOUNCER_COMMIT=13a344f2625381296fc02e29b986a11be9c6b983
 ARG PGBOUNCER_SOURCE_SHA256=50a59fd102e6dce89cf05ff7b07c5cb2bd8e74b4ea24ca192b27cc508634c780
@@ -22,20 +24,19 @@ ARG PGBOUNCER_CFLAGS="-O2 -pipe -fstack-protector-strong -D_FORTIFY_SOURCE=3"
 ARG PGBOUNCER_LDFLAGS="-Wl,-z,relro,-z,now -Wl,--as-needed"
 
 USER root
-RUN tdnf install -y \
+RUN dnf install -y --enablerepo=crb \
       binutils \
       c-ares-devel \
       gcc \
       glibc-devel \
+      kernel-headers \
       libevent-devel \
-      linux-api-headers \
       meson \
       ninja-build \
       openldap-devel \
       openssl-devel \
-      pkg-config \
-      python3 \
-      shadow \
+      pkgconf-pkg-config \
+      shadow-utils \
       tar \
       wget \
  && wget -O /tmp/pgbouncer.tar.gz \
@@ -66,6 +67,32 @@ RUN CFLAGS="${PGBOUNCER_CFLAGS}" \
  && meson compile -C build \
  && meson install -C build --destdir=/tmp/pgbouncer-install \
  && /tmp/pgbouncer-install/usr/bin/pgbouncer --version
+
+
+FROM $BUILD_BASE AS runtime-builder
+
+USER root
+RUN mkdir -p /mnt/rootfs \
+ && dnf install -y \
+      --installroot=/mnt/rootfs \
+      --releasever=10 \
+      --setopt=install_weak_deps=False \
+      bash \
+      c-ares \
+      ca-certificates \
+      coreutils \
+      glibc-minimal-langpack \
+      libevent \
+      openldap \
+      openssl-libs \
+      postgresql \
+      shadow-utils \
+ && dnf upgrade -y \
+      --installroot=/mnt/rootfs \
+      --releasever=10 \
+      --setopt=install_weak_deps=False \
+ && dnf clean all --installroot=/mnt/rootfs \
+ && rm -rf /mnt/rootfs/var/cache/dnf
 
 
 FROM $BASE
@@ -103,19 +130,11 @@ LABEL org.opencontainers.image.component.pgbouncer.revision="${PGBOUNCER_COMMIT}
 LABEL edu.gatech.image.owner="${IMAGE_OWNER}"
 LABEL edu.gatech.image.repository="${IMAGE_REPOSITORY}"
 
+COPY --from=runtime-builder /mnt/rootfs/ /
+COPY --from=pgbouncer-builder /tmp/pgbouncer-install/ /
+
 USER root
-RUN tdnf install -y \
-      c-ares \
-      ca-certificates \
-      libevent \
-      openldap \
-      openssl \
-      postgresql18-client \
-      shadow \
- && tdnf upgrade -y --exclude filesystem \
- && tdnf clean all \
- && rm -rf /var/cache/tdnf \
- && if getent passwd 998 >/dev/null; then userdel "$(getent passwd 998 | cut -d: -f1)"; fi \
+RUN if getent passwd 998 >/dev/null; then userdel "$(getent passwd 998 | cut -d: -f1)"; fi \
  && groupadd -r -g 996 pgbouncer \
  && useradd -r -u 998 -g 996 pgbouncer \
  && mkdir -p /etc/pgbouncer /var/run/pgbouncer /var/log/pgbouncer \
@@ -123,8 +142,6 @@ RUN tdnf install -y \
       /etc/pgbouncer \
       /var/run/pgbouncer \
       /var/log/pgbouncer
-
-COPY --from=pgbouncer-builder /tmp/pgbouncer-install/ /
 
 EXPOSE 6432
 USER pgbouncer
