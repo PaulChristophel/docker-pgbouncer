@@ -87,6 +87,7 @@ RUN mkdir -p /mnt/rootfs \
       openssl-libs \
       postgresql \
       shadow-utils \
+      tzdata \
  && dnf upgrade -y \
       --installroot=/mnt/rootfs \
       --releasever=10 \
@@ -95,7 +96,7 @@ RUN mkdir -p /mnt/rootfs \
  && rm -rf /mnt/rootfs/var/cache/dnf
 
 
-FROM $BASE
+FROM scratch
 ARG BASE
 ARG PGBOUNCER_VERSION=1.25.2
 ARG PGBOUNCER_COMMIT=13a344f2625381296fc02e29b986a11be9c6b983

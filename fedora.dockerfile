@@ -66,7 +66,36 @@ RUN CFLAGS="${PGBOUNCER_CFLAGS}" \
  && /tmp/pgbouncer-install/usr/bin/pgbouncer --version
 
 
-FROM $BASE
+FROM $BASE AS runtime-builder
+
+USER root
+RUN mkdir -p /mnt/rootfs \
+ && dnf install -y \
+      --installroot=/mnt/rootfs \
+      --releasever=44 \
+      --use-host-config \
+      --setopt=install_weak_deps=False \
+      bash \
+      c-ares \
+      ca-certificates \
+      coreutils \
+      glibc-minimal-langpack \
+      libevent \
+      openldap \
+      openssl-libs \
+      postgresql \
+      shadow-utils \
+      tzdata \
+ && dnf upgrade -y \
+      --installroot=/mnt/rootfs \
+      --releasever=44 \
+      --use-host-config \
+      --setopt=install_weak_deps=False \
+ && dnf clean all --installroot=/mnt/rootfs \
+ && rm -rf /mnt/rootfs/var/cache/dnf
+
+
+FROM scratch
 ARG BASE
 ARG PGBOUNCER_VERSION=1.25.2
 ARG PGBOUNCER_COMMIT=13a344f2625381296fc02e29b986a11be9c6b983
@@ -102,19 +131,8 @@ LABEL edu.gatech.image.owner="${IMAGE_OWNER}"
 LABEL edu.gatech.image.repository="${IMAGE_REPOSITORY}"
 
 USER root
-RUN dnf upgrade -y \
- && dnf install -y \
-      c-ares \
-      ca-certificates \
-      libevent \
-      openldap \
-      openssl-libs \
-      postgresql \
-      shadow-utils \
- && dnf upgrade -y \
- && dnf clean all \
- && rm -rf /var/cache/dnf \
- && groupadd -r --gid 996 pgbouncer \
+COPY --from=runtime-builder /mnt/rootfs/ /
+RUN groupadd -r --gid 996 pgbouncer \
  && useradd -r --uid 998 --gid 996 pgbouncer \
  && mkdir -p /etc/pgbouncer /var/run/pgbouncer /var/log/pgbouncer \
  && chown -R pgbouncer:pgbouncer \

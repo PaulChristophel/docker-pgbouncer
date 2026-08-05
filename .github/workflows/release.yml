@@ -92,6 +92,7 @@ jobs:
           platforms: linux/amd64
           push: true
           provenance: false
+          sbom: true
           tags: ${{ steps.metadata.outputs.tags }}
           labels: ${{ steps.metadata.outputs.labels }}
           build-args: |

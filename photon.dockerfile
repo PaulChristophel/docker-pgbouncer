@@ -68,7 +68,33 @@ RUN CFLAGS="${PGBOUNCER_CFLAGS}" \
  && /tmp/pgbouncer-install/usr/bin/pgbouncer --version
 
 
-FROM $BASE
+FROM $BASE AS runtime-builder
+
+USER root
+RUN mkdir -p /mnt/rootfs \
+ && tdnf -i /mnt/rootfs --releasever=5.0 install -y \
+      filesystem \
+      glibc \
+      libselinux \
+      coreutils \
+      findutils \
+ && tdnf -i /mnt/rootfs --releasever=5.0 install -y \
+      bash \
+      c-ares \
+      ca-certificates \
+      libevent \
+      openldap \
+      openssl \
+      photon-release \
+      postgresql18-client \
+      shadow \
+      tzdata \
+ && tdnf -i /mnt/rootfs --releasever=5.0 upgrade -y \
+ && tdnf -i /mnt/rootfs --releasever=5.0 clean all \
+ && rm -rf /mnt/rootfs/var/cache/tdnf
+
+
+FROM scratch
 ARG BASE
 ARG PGBOUNCER_VERSION=1.25.2
 ARG PGBOUNCER_COMMIT=13a344f2625381296fc02e29b986a11be9c6b983
@@ -104,18 +130,8 @@ LABEL edu.gatech.image.owner="${IMAGE_OWNER}"
 LABEL edu.gatech.image.repository="${IMAGE_REPOSITORY}"
 
 USER root
-RUN tdnf install -y \
-      c-ares \
-      ca-certificates \
-      libevent \
-      openldap \
-      openssl \
-      postgresql18-client \
-      shadow \
- && tdnf upgrade -y --exclude filesystem \
- && tdnf clean all \
- && rm -rf /var/cache/tdnf \
- && if getent passwd 998 >/dev/null; then userdel "$(getent passwd 998 | cut -d: -f1)"; fi \
+COPY --from=runtime-builder /mnt/rootfs/ /
+RUN if getent passwd 998 >/dev/null; then userdel "$(getent passwd 998 | cut -d: -f1)"; fi \
  && groupadd -r -g 996 pgbouncer \
  && useradd -r -u 998 -g 996 pgbouncer \
  && mkdir -p /etc/pgbouncer /var/run/pgbouncer /var/log/pgbouncer \
