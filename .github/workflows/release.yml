@@ -66,9 +66,15 @@ jobs:
           username: pcm0
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Record build timestamp
+        id: build-time
+        run: echo "created=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
+
       - name: Generate image metadata
         id: metadata
         uses: docker/metadata-action@v6
+        env:
+          DOCKER_METADATA_ANNOTATIONS_LEVELS: manifest,index
         with:
           images: ${{ env.IMAGE_NAME }}
           tags: |
@@ -78,10 +84,23 @@ jobs:
             type=raw,value=${{ matrix.pgbouncer.series }},enable=${{ matrix.variant.latest && matrix.pgbouncer.channel == 'stable' }}
             type=raw,value=latest,enable=${{ matrix.variant.latest && matrix.pgbouncer.channel == 'stable' }}
             type=sha,prefix=${{ matrix.pgbouncer.version }}-${{ matrix.variant.tag }}-sha-
-
-      - name: Record build timestamp
-        id: build-time
-        run: echo "created=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
+          annotations: |
+            org.opencontainers.image.title=CloudNativePG PgBouncer ${{ matrix.pgbouncer.version }} (${{ matrix.variant.tag }})
+            org.opencontainers.image.description=PgBouncer ${{ matrix.pgbouncer.version }} built from upstream source for CloudNativePG using the ${{ matrix.variant.tag }} variant.
+            org.opencontainers.image.authors=Paul Christophel <pmartin@gatech.edu>
+            org.opencontainers.image.vendor=Paul Christophel
+            org.opencontainers.image.source=https://github.com/PaulChristophel/docker-pgbouncer
+            org.opencontainers.image.url=https://hub.docker.com/r/pcm0/pgbouncer
+            org.opencontainers.image.documentation=https://github.com/PaulChristophel/docker-pgbouncer#readme
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.created=${{ steps.build-time.outputs.created }}
+            org.opencontainers.image.licenses=AGPL-3.0-or-later
+            org.opencontainers.image.version=${{ matrix.pgbouncer.version }}
+            org.opencontainers.image.ref.name=${{ env.IMAGE_NAME }}:${{ matrix.pgbouncer.version }}-${{ matrix.variant.tag }}
+            org.opencontainers.image.component.pgbouncer.version=${{ matrix.pgbouncer.version }}
+            org.opencontainers.image.component.pgbouncer.revision=${{ matrix.pgbouncer.commit }}
+            edu.gatech.image.owner=Paul Christophel <pmartin@gatech.edu>
+            edu.gatech.image.repository=${{ env.IMAGE_NAME }}
 
       - name: Build and push image
         id: push
@@ -95,6 +114,7 @@ jobs:
           sbom: true
           tags: ${{ steps.metadata.outputs.tags }}
           labels: ${{ steps.metadata.outputs.labels }}
+          annotations: ${{ steps.metadata.outputs.annotations }}
           build-args: |
             PGBOUNCER_VERSION=${{ matrix.pgbouncer.version }}
             PGBOUNCER_COMMIT=${{ matrix.pgbouncer.commit }}
