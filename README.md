@@ -17,7 +17,8 @@ The release workflow currently builds PgBouncer for `linux/amd64` on:
 - Fedora 46 (`fedora46`);
 - Photon OS 5 (`photon5`);
 - Rocky Linux 10 UBI Micro (`rocky10`);
-- AlmaLinux Kitten 10 minimal (`alma10`).
+- AlmaLinux Kitten 10 minimal (`alma10`);
+- openSUSE Tumbleweed (`tumbleweed`).
 
 `images.json` is the source of truth for the PgBouncer version, source commit,
 archive checksum, release channel, distribution base images, and image variants.
@@ -73,6 +74,8 @@ Each OS receives full-version and release-series tags:
 1.25-photon5
 1.25.2-rocky10
 1.25-rocky10
+1.25.2-tumbleweed
+1.25-tumbleweed
 ```
 
 The Fedora variant also receives the unsuffixed `1.25.2`, `1.25`, and `latest`
@@ -138,8 +141,8 @@ Git revision; the `sha256` is the digest of the downloaded source archive.
 
 ## Verification status
 
-Fedora 44, Fedora 45, Fedora 46, Photon, and Rocky Linux images have been built
-locally with Podman and checked for the expected PgBouncer version, c-ares,
-OpenSSL, LDAP linkage, PostgreSQL client, and runtime UID/GID. LDAP
-authentication against a live directory is deployment-specific and is not
-exercised by the image build.
+Fedora 44, Fedora 45, Fedora 46, Photon, Rocky Linux, and openSUSE Tumbleweed
+images have been built locally with Podman and checked for the expected
+PgBouncer version, c-ares, OpenSSL, LDAP linkage, PostgreSQL client, and runtime
+UID/GID. LDAP authentication against a live directory is deployment-specific
+and is not exercised by the image build.
