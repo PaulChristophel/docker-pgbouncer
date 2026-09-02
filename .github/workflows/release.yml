@@ -39,7 +39,7 @@ jobs:
         run: |
           echo "image=$(jq -r '.image' images.json)" >> "$GITHUB_OUTPUT"
           echo "pgbouncer=$(jq -c '.pgbouncer' images.json)" >> "$GITHUB_OUTPUT"
-          echo "variants=$(jq -c '.variants' images.json)" >> "$GITHUB_OUTPUT"
+          echo "variants=$(jq -c '.distributions as $distributions | [.variants[] | . + {distribution: $distributions[.os].name, distribution_version: $distributions[.os].version, base: $distributions[.os].base, build_base: ($distributions[.os].build_base // $distributions[.os].base)}]' images.json)" >> "$GITHUB_OUTPUT"
 
   build:
     name: PgBouncer ${{ matrix.pgbouncer.version }} ${{ matrix.variant.tag }}
@@ -99,8 +99,11 @@ jobs:
             org.opencontainers.image.ref.name=${{ env.IMAGE_NAME }}:${{ matrix.pgbouncer.version }}-${{ matrix.variant.tag }}
             org.opencontainers.image.component.pgbouncer.version=${{ matrix.pgbouncer.version }}
             org.opencontainers.image.component.pgbouncer.revision=${{ matrix.pgbouncer.commit }}
+            org.opencontainers.image.base.name=${{ matrix.variant.base }}
             edu.gatech.image.owner=Paul Christophel <pmartin@gatech.edu>
             edu.gatech.image.repository=${{ env.IMAGE_NAME }}
+            edu.gatech.image.os.distribution=${{ matrix.variant.distribution }}
+            edu.gatech.image.os.version=${{ matrix.variant.distribution_version }}
 
       - name: Build and push image
         id: push
@@ -116,12 +119,16 @@ jobs:
           labels: ${{ steps.metadata.outputs.labels }}
           annotations: ${{ steps.metadata.outputs.annotations }}
           build-args: |
+            BASE=${{ matrix.variant.base }}
+            BUILD_BASE=${{ matrix.variant.build_base }}
             PGBOUNCER_VERSION=${{ matrix.pgbouncer.version }}
             PGBOUNCER_COMMIT=${{ matrix.pgbouncer.commit }}
             PGBOUNCER_SOURCE_SHA256=${{ matrix.pgbouncer.sha256 }}
             IMAGE_REPOSITORY=${{ env.IMAGE_NAME }}
             IMAGE_REVISION=${{ github.sha }}
             IMAGE_CREATED=${{ steps.build-time.outputs.created }}
+            IMAGE_DISTRIBUTION=${{ matrix.variant.distribution }}
+            IMAGE_DISTRIBUTION_VERSION=${{ matrix.variant.distribution_version }}
           cache-from: type=gha,scope=pgbouncer-${{ matrix.pgbouncer.version }}-${{ matrix.variant.tag }}
           cache-to: type=gha,mode=max,scope=pgbouncer-${{ matrix.pgbouncer.version }}-${{ matrix.variant.tag }}
 

@@ -9,12 +9,58 @@
       "channel": "stable"
     }
   ],
+  "distributions": {
+    "fedora44": {
+      "name": "fedora",
+      "version": "44",
+      "base": "docker.io/fedora:44@sha256:6c75d5bf57cb0fa5aa4b92c6a83c86c791644496d9ac230de7711f5b8ec3b898"
+    },
+    "fedora45": {
+      "name": "fedora",
+      "version": "45",
+      "base": "docker.io/fedora:45@sha256:aacbc26b38361ba0cb3d10f268da40b61b36aed6ed6fe5831a35871636bedb06"
+    },
+    "fedora46": {
+      "name": "fedora",
+      "version": "46",
+      "base": "docker.io/fedora:46@sha256:a9bab18d01cf2c2cf62f3e79c72623405bce14ac062995cc6651a3073c802e41"
+    },
+    "photon5": {
+      "name": "photon",
+      "version": "5.0",
+      "base": "docker.io/photon:5.0@sha256:ab4b68e15c8ff6b9c79ba525f696260f772c711761d576dd53bf43c351c9a504"
+    },
+    "rocky10": {
+      "name": "rockylinux",
+      "version": "10",
+      "base": "docker.io/rockylinux/rockylinux:10-ubi-micro@sha256:187d27b1e4d4305bac2a965fe1cb2de29f2fa85f93bcd60af55daf1a697f19ae",
+      "build_base": "docker.io/rockylinux/rockylinux:10@sha256:827d37bc128288ccf160ee318bb3cb92d591164cb217e92f8bc61e3982ae1834"
+    },
+    "alma10": {
+      "name": "almalinux-kitten",
+      "version": "10",
+      "base": "docker.io/almalinux:10-kitten-minimal@sha256:515a829404b2b5d25d0da6f6c8359bcc83d54974c9ce829a8854ac3f792a20ed",
+      "build_base": "docker.io/almalinux:10-kitten@sha256:95deefe15f77c78b69fcece224a040a6f726ea4c3bc30cf254a0655795136042"
+    }
+  },
   "variants": [
     {
       "dockerfile": "fedora.dockerfile",
       "tag": "fedora44",
       "os": "fedora44",
       "latest": true
+    },
+    {
+      "dockerfile": "fedora.dockerfile",
+      "tag": "fedora45",
+      "os": "fedora45",
+      "latest": false
+    },
+    {
+      "dockerfile": "fedora.dockerfile",
+      "tag": "fedora46",
+      "os": "fedora46",
+      "latest": false
     },
     {
       "dockerfile": "photon.dockerfile",

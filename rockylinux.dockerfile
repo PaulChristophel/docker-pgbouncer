@@ -70,12 +70,13 @@ RUN CFLAGS="${PGBOUNCER_CFLAGS}" \
 
 
 FROM $BUILD_BASE AS runtime-builder
+ARG IMAGE_DISTRIBUTION_VERSION=10
 
 USER root
 RUN mkdir -p /mnt/rootfs \
  && dnf install -y \
       --installroot=/mnt/rootfs \
-      --releasever=10 \
+      --releasever=${IMAGE_DISTRIBUTION_VERSION} \
       --setopt=install_weak_deps=False \
       bash \
       c-ares \
@@ -90,7 +91,7 @@ RUN mkdir -p /mnt/rootfs \
       tzdata \
  && dnf upgrade -y \
       --installroot=/mnt/rootfs \
-      --releasever=10 \
+      --releasever=${IMAGE_DISTRIBUTION_VERSION} \
       --setopt=install_weak_deps=False \
  && dnf clean all --installroot=/mnt/rootfs \
  && rm -rf /mnt/rootfs/var/cache/dnf
@@ -112,6 +113,8 @@ ARG IMAGE_DOCUMENTATION
 ARG IMAGE_REVISION
 ARG IMAGE_CREATED
 ARG IMAGE_LICENSES
+ARG IMAGE_DISTRIBUTION=RockyLinux
+ARG IMAGE_DISTRIBUTION_VERSION=10
 
 LABEL org.opencontainers.image.created="${IMAGE_CREATED}"
 LABEL org.opencontainers.image.base.name="${BASE}"
@@ -130,6 +133,8 @@ LABEL org.opencontainers.image.component.pgbouncer.version="${PGBOUNCER_VERSION}
 LABEL org.opencontainers.image.component.pgbouncer.revision="${PGBOUNCER_COMMIT}"
 LABEL edu.gatech.image.owner="${IMAGE_OWNER}"
 LABEL edu.gatech.image.repository="${IMAGE_REPOSITORY}"
+LABEL edu.gatech.image.os.distribution="${IMAGE_DISTRIBUTION}"
+LABEL edu.gatech.image.os.version="${IMAGE_DISTRIBUTION_VERSION}"
 
 COPY --from=runtime-builder /mnt/rootfs/ /
 COPY --from=pgbouncer-builder /tmp/pgbouncer-install/ /

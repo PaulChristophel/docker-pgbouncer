@@ -1,6 +1,7 @@
 # Containerfile.cnpg-pgbouncer-source
 
 ARG BASE=docker.io/fedora:44@sha256:6c75d5bf57cb0fa5aa4b92c6a83c86c791644496d9ac230de7711f5b8ec3b898
+ARG BUILD_BASE=docker.io/fedora:44@sha256:6c75d5bf57cb0fa5aa4b92c6a83c86c791644496d9ac230de7711f5b8ec3b898
 ARG IMAGE_TITLE="CloudNativePG PgBouncer on Fedora"
 ARG IMAGE_DESCRIPTION="PgBouncer built from upstream source on Fedora OS for CloudNativePG."
 ARG IMAGE_AUTHORS="Paul Christophel <pmartin@gatech.edu>"
@@ -14,7 +15,7 @@ ARG IMAGE_REVISION="unknown"
 ARG IMAGE_CREATED="1970-01-01T00:00:00Z"
 ARG IMAGE_LICENSES="AGPL-3.0-or-later"
 
-FROM $BASE AS pgbouncer-builder
+FROM $BUILD_BASE AS pgbouncer-builder
 ARG PGBOUNCER_VERSION=1.25.2
 ARG PGBOUNCER_COMMIT=13a344f2625381296fc02e29b986a11be9c6b983
 ARG PGBOUNCER_SOURCE_SHA256=50a59fd102e6dce89cf05ff7b07c5cb2bd8e74b4ea24ca192b27cc508634c780
@@ -67,12 +68,13 @@ RUN CFLAGS="${PGBOUNCER_CFLAGS}" \
 
 
 FROM $BASE AS runtime-builder
+ARG IMAGE_DISTRIBUTION_VERSION=44
 
 USER root
 RUN mkdir -p /mnt/rootfs \
  && dnf install -y \
       --installroot=/mnt/rootfs \
-      --releasever=44 \
+      --releasever=${IMAGE_DISTRIBUTION_VERSION} \
       --use-host-config \
       --setopt=install_weak_deps=False \
       bash \
@@ -88,7 +90,7 @@ RUN mkdir -p /mnt/rootfs \
       tzdata \
  && dnf upgrade -y \
       --installroot=/mnt/rootfs \
-      --releasever=44 \
+      --releasever=${IMAGE_DISTRIBUTION_VERSION} \
       --use-host-config \
       --setopt=install_weak_deps=False \
  && dnf clean all --installroot=/mnt/rootfs \
@@ -111,6 +113,8 @@ ARG IMAGE_DOCUMENTATION
 ARG IMAGE_REVISION
 ARG IMAGE_CREATED
 ARG IMAGE_LICENSES
+ARG IMAGE_DISTRIBUTION=Fedora
+ARG IMAGE_DISTRIBUTION_VERSION=44
 
 LABEL org.opencontainers.image.created="${IMAGE_CREATED}"
 LABEL org.opencontainers.image.base.name="${BASE}"
@@ -129,6 +133,8 @@ LABEL org.opencontainers.image.component.pgbouncer.version="${PGBOUNCER_VERSION}
 LABEL org.opencontainers.image.component.pgbouncer.revision="${PGBOUNCER_COMMIT}"
 LABEL edu.gatech.image.owner="${IMAGE_OWNER}"
 LABEL edu.gatech.image.repository="${IMAGE_REPOSITORY}"
+LABEL edu.gatech.image.os.distribution="${IMAGE_DISTRIBUTION}"
+LABEL edu.gatech.image.os.version="${IMAGE_DISTRIBUTION_VERSION}"
 
 USER root
 COPY --from=runtime-builder /mnt/rootfs/ /

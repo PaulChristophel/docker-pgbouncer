@@ -17,9 +17,9 @@ repository's supported image contract.
 ## Repository layout
 
 - `images.json` is the source of truth for PgBouncer releases, source
-  checksums, build variants, and release channels.
-- `photon.dockerfile`, `fedora.dockerfile`, and `rockylinux.dockerfile` define
-  the distribution-specific builds.
+  checksums, distribution base images, build variants, and release channels.
+- `photon.dockerfile`, `fedora.dockerfile`, `rockylinux.dockerfile`, and
+  `almalinux.dockerfile` define the distribution-family-specific builds.
 - `.github/workflows/release.yml` builds and publishes the complete matrix.
 
 When adding or updating downloaded source, pin both its immutable revision and

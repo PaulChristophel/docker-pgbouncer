@@ -1,6 +1,7 @@
 # Containerfile.cnpg-pgbouncer-source
 
 ARG BASE=docker.io/photon:5.0@sha256:ab4b68e15c8ff6b9c79ba525f696260f772c711761d576dd53bf43c351c9a504
+ARG BUILD_BASE=docker.io/photon:5.0@sha256:ab4b68e15c8ff6b9c79ba525f696260f772c711761d576dd53bf43c351c9a504
 ARG IMAGE_TITLE="CloudNativePG PgBouncer on Photon"
 ARG IMAGE_DESCRIPTION="PgBouncer built from upstream source on Photon OS for CloudNativePG."
 ARG IMAGE_AUTHORS="Paul Christophel <pmartin@gatech.edu>"
@@ -14,7 +15,7 @@ ARG IMAGE_REVISION="unknown"
 ARG IMAGE_CREATED="1970-01-01T00:00:00Z"
 ARG IMAGE_LICENSES="AGPL-3.0-or-later"
 
-FROM $BASE AS pgbouncer-builder
+FROM $BUILD_BASE AS pgbouncer-builder
 ARG PGBOUNCER_VERSION=1.25.2
 ARG PGBOUNCER_COMMIT=13a344f2625381296fc02e29b986a11be9c6b983
 ARG PGBOUNCER_SOURCE_SHA256=50a59fd102e6dce89cf05ff7b07c5cb2bd8e74b4ea24ca192b27cc508634c780
@@ -69,16 +70,17 @@ RUN CFLAGS="${PGBOUNCER_CFLAGS}" \
 
 
 FROM $BASE AS runtime-builder
+ARG IMAGE_DISTRIBUTION_VERSION=5.0
 
 USER root
 RUN mkdir -p /mnt/rootfs \
- && tdnf -i /mnt/rootfs --releasever=5.0 install -y \
+ && tdnf -i /mnt/rootfs --releasever=${IMAGE_DISTRIBUTION_VERSION} install -y \
       filesystem \
       glibc \
       libselinux \
       coreutils \
       findutils \
- && tdnf -i /mnt/rootfs --releasever=5.0 install -y \
+ && tdnf -i /mnt/rootfs --releasever=${IMAGE_DISTRIBUTION_VERSION} install -y \
       bash \
       c-ares \
       ca-certificates \
@@ -89,8 +91,8 @@ RUN mkdir -p /mnt/rootfs \
       postgresql18-client \
       shadow \
       tzdata \
- && tdnf -i /mnt/rootfs --releasever=5.0 upgrade -y \
- && tdnf -i /mnt/rootfs --releasever=5.0 clean all \
+ && tdnf -i /mnt/rootfs --releasever=${IMAGE_DISTRIBUTION_VERSION} upgrade -y \
+ && tdnf -i /mnt/rootfs --releasever=${IMAGE_DISTRIBUTION_VERSION} clean all \
  && rm -rf /mnt/rootfs/var/cache/tdnf
 
 
@@ -110,6 +112,8 @@ ARG IMAGE_DOCUMENTATION
 ARG IMAGE_REVISION
 ARG IMAGE_CREATED
 ARG IMAGE_LICENSES
+ARG IMAGE_DISTRIBUTION=Photon
+ARG IMAGE_DISTRIBUTION_VERSION=5.0
 
 LABEL org.opencontainers.image.created="${IMAGE_CREATED}"
 LABEL org.opencontainers.image.base.name="${BASE}"
@@ -128,6 +132,8 @@ LABEL org.opencontainers.image.component.pgbouncer.version="${PGBOUNCER_VERSION}
 LABEL org.opencontainers.image.component.pgbouncer.revision="${PGBOUNCER_COMMIT}"
 LABEL edu.gatech.image.owner="${IMAGE_OWNER}"
 LABEL edu.gatech.image.repository="${IMAGE_REPOSITORY}"
+LABEL edu.gatech.image.os.distribution="${IMAGE_DISTRIBUTION}"
+LABEL edu.gatech.image.os.version="${IMAGE_DISTRIBUTION_VERSION}"
 
 USER root
 COPY --from=runtime-builder /mnt/rootfs/ /

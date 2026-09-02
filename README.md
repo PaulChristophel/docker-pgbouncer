@@ -13,11 +13,16 @@ Published images are available from
 The release workflow currently builds PgBouncer for `linux/amd64` on:
 
 - Fedora 44 (`fedora44`), the default variant;
+- Fedora 45 (`fedora45`);
+- Fedora 46 (`fedora46`);
 - Photon OS 5 (`photon5`);
-- Rocky Linux 10 UBI Micro (`rocky10`).
+- Rocky Linux 10 UBI Micro (`rocky10`);
+- AlmaLinux Kitten 10 minimal (`alma10`).
 
 `images.json` is the source of truth for the PgBouncer version, source commit,
-archive checksum, release channel, and image variants.
+archive checksum, release channel, distribution base images, and image variants.
+Multiple variants can reference the same Dockerfile with different distribution
+records; for example, all Fedora releases use `fedora.dockerfile`.
 
 ## Build configuration
 
@@ -60,6 +65,10 @@ Each OS receives full-version and release-series tags:
 ```text
 1.25.2-fedora44
 1.25-fedora44
+1.25.2-fedora45
+1.25-fedora45
+1.25.2-fedora46
+1.25-fedora46
 1.25.2-photon5
 1.25-photon5
 1.25.2-rocky10
@@ -106,9 +115,12 @@ For example, build the Fedora image with Podman:
   -t localhost/pgbouncer:fedora44 .
 ```
 
-Use `photon.dockerfile` or `rockylinux.dockerfile` and change the local tag to
-build the other variants. The Dockerfiles contain usable defaults for local
+Use the relevant distribution-family Dockerfile and change the local tag to
+build another variant. The Dockerfiles contain usable defaults for local
 builds; the release workflow supplies the pinned values from `images.json`.
+To build a non-default Fedora release locally, also pass that distribution's
+`base`, `build_base`, and `version` values as `BASE`, `BUILD_BASE`, and
+`IMAGE_DISTRIBUTION_VERSION` build arguments.
 
 ## Release process
 
@@ -118,13 +130,16 @@ provenance attestations. It runs for changes on `master`, on a weekly schedule,
 or by manual dispatch.
 
 To update PgBouncer, change `version`, `series`, `commit`, and `sha256` in
-`images.json`, then update the corresponding Dockerfile defaults so local and
-workflow-driven builds remain aligned. The `commit` is a Git revision; the
-`sha256` is the digest of the downloaded source archive.
+`images.json`, then update the corresponding Dockerfile source defaults so
+local and workflow-driven builds remain aligned. To add an OS release, add a
+record under `distributions` and a reference under `variants`; no Dockerfile
+change is needed when its package contract is compatible. The `commit` is a
+Git revision; the `sha256` is the digest of the downloaded source archive.
 
 ## Verification status
 
-Fedora, Photon, and Rocky Linux images have been built locally with Podman and
-checked for the expected PgBouncer version, c-ares, OpenSSL, LDAP linkage,
-PostgreSQL client, and runtime UID/GID. LDAP authentication against a live
-directory is deployment-specific and is not exercised by the image build.
+Fedora 44, Fedora 45, Fedora 46, Photon, and Rocky Linux images have been built
+locally with Podman and checked for the expected PgBouncer version, c-ares,
+OpenSSL, LDAP linkage, PostgreSQL client, and runtime UID/GID. LDAP
+authentication against a live directory is deployment-specific and is not
+exercised by the image build.
