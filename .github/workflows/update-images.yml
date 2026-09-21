@@ -61,6 +61,8 @@ jobs:
           fi
           branch="automation/update-image-pins"
           git switch --create "$branch"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add images.json
           git commit -m "chore: refresh base-image pins"
           # This branch is automation-owned. Force-pushing it refreshes an
