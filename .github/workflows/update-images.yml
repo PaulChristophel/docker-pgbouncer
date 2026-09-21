@@ -2,7 +2,7 @@ name: Update base-image pins
 
 on:
   schedule:
-    - cron: "23 7 * * 1"
+    - cron: "3 7 * * *"
   workflow_dispatch:
 
 permissions:
