@@ -42,22 +42,25 @@ jobs:
           curl --fail --location --retry 3 --output "$archive" \
             "https://github.com/pgbouncer/pgbouncer/archive/${commit}.tar.gz"
 
-          # Every Dockerfile builds with Meson. Do not open an unusable update PR
-          # for a release that does not contain its Meson build definition.
-          tar --extract --gzip --file "$archive" --to-stdout \
-            --wildcards '*/meson.build' | grep -q .
-          sha256=$(sha256sum "$archive" | awk '{print $1}')
-          series=$(awk -F. '{print $1 "." $2}' <<<"$version")
+          # Every Dockerfile builds with Meson. An upstream release without a
+          # Meson definition is not an error: retain the working source pin and
+          # still refresh the independent distribution base-image pins.
+          if tar --list --gzip --file "$archive" | grep -Eq '/meson\.build$'; then
+            sha256=$(sha256sum "$archive" | awk '{print $1}')
+            series=$(awk -F. '{print $1 "." $2}' <<<"$version")
 
-          jq --arg version "$version" --arg series "$series" \
-            --arg commit "$commit" --arg sha256 "$sha256" '
-            .pgbouncer |= map(
-              if .channel == "stable" then
-                .version = $version | .series = $series | .commit = $commit | .sha256 = $sha256
-              else . end
-            )
-          ' images.json > images.json.next
-          mv images.json.next images.json
+            jq --arg version "$version" --arg series "$series" \
+              --arg commit "$commit" --arg sha256 "$sha256" '
+              .pgbouncer |= map(
+                if .channel == "stable" then
+                  .version = $version | .series = $series | .commit = $commit | .sha256 = $sha256
+                else . end
+              )
+            ' images.json > images.json.next
+            mv images.json.next images.json
+          else
+            echo "::notice::Upstream ${tag} has no Meson build definition; retaining the current PgBouncer pin."
+          fi
 
           # Resolve every configured base tag independently. Versioned tags can
           # move too, so checking only references named "latest" is insufficient.
