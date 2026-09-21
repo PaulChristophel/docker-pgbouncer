@@ -1,0 +1,124 @@
+name: Update image pins
+
+on:
+  schedule:
+    - cron: "23 7 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: update-image-pins
+  cancel-in-progress: false
+
+jobs:
+  update:
+    name: Refresh PgBouncer and base-image pins
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Update tracked image inputs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          release=$(gh api repos/pgbouncer/pgbouncer/releases/latest)
+          tag=$(jq -r '.tag_name' <<<"$release")
+          version=${tag#pgbouncer_}
+          version=${version#v}
+          commit=$(gh api "repos/pgbouncer/pgbouncer/commits/${tag}" --jq .sha)
+          archive=$(mktemp)
+          trap 'rm -f "$archive"' EXIT
+          curl --fail --location --retry 3 --output "$archive" \
+            "https://github.com/pgbouncer/pgbouncer/archive/${commit}.tar.gz"
+
+          # Every Dockerfile builds with Meson. Do not open an unusable update PR
+          # for a release that does not contain its Meson build definition.
+          tar --extract --gzip --file "$archive" --to-stdout \
+            --wildcards '*/meson.build' | grep -q .
+          sha256=$(sha256sum "$archive" | awk '{print $1}')
+          series=$(awk -F. '{print $1 "." $2}' <<<"$version")
+
+          jq --arg version "$version" --arg series "$series" \
+            --arg commit "$commit" --arg sha256 "$sha256" '
+            .pgbouncer |= map(
+              if .channel == "stable" then
+                .version = $version | .series = $series | .commit = $commit | .sha256 = $sha256
+              else . end
+            )
+          ' images.json > images.json.next
+          mv images.json.next images.json
+
+          # Resolve every configured base tag independently. Versioned tags can
+          # move too, so checking only references named "latest" is insufficient.
+          while IFS=$'\t' read -r key field base; do
+            image=${base%%@*}
+            digest=$(docker buildx imagetools inspect "$image" --format '{{json .Manifest}}' | jq -r .digest)
+            case "$digest" in
+              sha256:[0-9a-f][0-9a-f]*) ;;
+              *) echo "Could not resolve an OCI digest for $image: $digest" >&2; exit 1 ;;
+            esac
+            jq --arg key "$key" --arg field "$field" --arg image "${image}@${digest}" \
+              '.distributions[$key][$field] = $image' images.json > images.json.next
+            mv images.json.next images.json
+          done < <(jq -r '
+            .distributions | to_entries[] |
+            [.key, "base", .value.base],
+            (if .value.build_base then [.key, "build_base", .value.build_base] else empty end) |
+            @tsv
+          ' images.json)
+
+          jq -e . images.json >/dev/null
+
+      - name: Keep local Dockerfile defaults aligned
+        run: |
+          set -euo pipefail
+          version=$(jq -r '.pgbouncer[] | select(.channel == "stable") | .version' images.json)
+          commit=$(jq -r '.pgbouncer[] | select(.channel == "stable") | .commit' images.json)
+          sha256=$(jq -r '.pgbouncer[] | select(.channel == "stable") | .sha256' images.json)
+          for dockerfile in *.dockerfile; do
+            sed -i \
+              -e "s/^ARG PGBOUNCER_VERSION=.*/ARG PGBOUNCER_VERSION=${version}/" \
+              -e "s/^ARG PGBOUNCER_COMMIT=.*/ARG PGBOUNCER_COMMIT=${commit}/" \
+              -e "s/^ARG PGBOUNCER_SOURCE_SHA256=.*/ARG PGBOUNCER_SOURCE_SHA256=${sha256}/" \
+              "$dockerfile"
+          done
+
+      - name: Create pull request when inputs changed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if git diff --quiet; then
+            echo "Image inputs are already current."
+            exit 0
+          fi
+          branch="automation/update-image-pins"
+          git switch --create "$branch"
+          git add images.json *.dockerfile
+          git commit -m "chore: refresh image pins"
+          # This branch is automation-owned. Force-pushing it refreshes an
+          # existing update PR without touching the protected default branch.
+          git push --force --set-upstream origin "$branch"
+          pr=$(gh pr list --head "$branch" --base master --state open --json number \
+            --jq '.[0].number')
+          if [ -z "$pr" ]; then
+            gh pr create \
+              --base master \
+              --head "$branch" \
+              --title "chore: refresh image pins" \
+              --body "Updates the latest Meson-capable stable PgBouncer source pin and any tracked mutable base-image digests."
+            pr=$(gh pr list --head "$branch" --base master --state open --json number \
+              --jq '.[0].number')
+          fi
+          gh pr merge "$pr" --auto --squash --delete-branch
