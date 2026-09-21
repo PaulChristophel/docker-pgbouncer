@@ -1,4 +1,4 @@
-name: Update image pins
+name: Update base-image pins
 
 on:
   schedule:
@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   update:
-    name: Refresh PgBouncer and base-image pins
+    name: Refresh base-image pins
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -26,42 +26,9 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
-      - name: Update tracked image inputs
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Refresh tracked base-image digests
         run: |
           set -euo pipefail
-
-          release=$(gh api repos/pgbouncer/pgbouncer/releases/latest)
-          tag=$(jq -r '.tag_name' <<<"$release")
-          version=${tag#pgbouncer_}
-          version=${version#v}
-          commit=$(gh api "repos/pgbouncer/pgbouncer/commits/${tag}" --jq .sha)
-          archive=$(mktemp)
-          trap 'rm -f "$archive"' EXIT
-          curl --fail --location --retry 3 --output "$archive" \
-            "https://github.com/pgbouncer/pgbouncer/archive/${commit}.tar.gz"
-
-          # Every Dockerfile builds with Meson. An upstream release without a
-          # Meson definition is not an error: retain the working source pin and
-          # still refresh the independent distribution base-image pins.
-          if tar --list --gzip --file "$archive" | grep -Eq '/meson\.build$'; then
-            sha256=$(sha256sum "$archive" | awk '{print $1}')
-            series=$(awk -F. '{print $1 "." $2}' <<<"$version")
-
-            jq --arg version "$version" --arg series "$series" \
-              --arg commit "$commit" --arg sha256 "$sha256" '
-              .pgbouncer |= map(
-                if .channel == "stable" then
-                  .version = $version | .series = $series | .commit = $commit | .sha256 = $sha256
-                else . end
-              )
-            ' images.json > images.json.next
-            mv images.json.next images.json
-          else
-            echo "::notice::Upstream ${tag} has no Meson build definition; retaining the current PgBouncer pin."
-          fi
-
           # Resolve every configured base tag independently. Versioned tags can
           # move too, so checking only references named "latest" is insufficient.
           while IFS=$'\t' read -r key field base; do
@@ -83,20 +50,6 @@ jobs:
 
           jq -e . images.json >/dev/null
 
-      - name: Keep local Dockerfile defaults aligned
-        run: |
-          set -euo pipefail
-          version=$(jq -r '.pgbouncer[] | select(.channel == "stable") | .version' images.json)
-          commit=$(jq -r '.pgbouncer[] | select(.channel == "stable") | .commit' images.json)
-          sha256=$(jq -r '.pgbouncer[] | select(.channel == "stable") | .sha256' images.json)
-          for dockerfile in *.dockerfile; do
-            sed -i \
-              -e "s/^ARG PGBOUNCER_VERSION=.*/ARG PGBOUNCER_VERSION=${version}/" \
-              -e "s/^ARG PGBOUNCER_COMMIT=.*/ARG PGBOUNCER_COMMIT=${commit}/" \
-              -e "s/^ARG PGBOUNCER_SOURCE_SHA256=.*/ARG PGBOUNCER_SOURCE_SHA256=${sha256}/" \
-              "$dockerfile"
-          done
-
       - name: Create pull request when inputs changed
         env:
           GH_TOKEN: ${{ github.token }}
@@ -108,8 +61,8 @@ jobs:
           fi
           branch="automation/update-image-pins"
           git switch --create "$branch"
-          git add images.json *.dockerfile
-          git commit -m "chore: refresh image pins"
+          git add images.json
+          git commit -m "chore: refresh base-image pins"
           # This branch is automation-owned. Force-pushing it refreshes an
           # existing update PR without touching the protected default branch.
           git push --force --set-upstream origin "$branch"
@@ -119,8 +72,8 @@ jobs:
             gh pr create \
               --base master \
               --head "$branch" \
-              --title "chore: refresh image pins" \
-              --body "Updates the latest Meson-capable stable PgBouncer source pin and any tracked mutable base-image digests."
+              --title "chore: refresh base-image pins" \
+              --body "Updates every configured runtime and builder base-image digest."
             pr=$(gh pr list --head "$branch" --base master --state open --json number \
               --jq '.[0].number')
           fi

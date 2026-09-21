@@ -132,11 +132,10 @@ The GitHub Actions workflow expands the PgBouncer version and OS variants from
 provenance attestations. It runs for changes on `master`, on a weekly schedule,
 or by manual dispatch.
 
-The weekly **Update image pins** workflow opens a pull request when a newer
-stable PgBouncer release contains the required Meson build definition or when
-any configured base-image tag resolves to a new digest. It updates
-`images.json` and the Dockerfile source defaults together; it never pushes to
-`master` directly. The pull request is configured to squash-auto-merge once
+The weekly **Update base-image pins** workflow opens a pull request when any
+configured runtime or builder base-image tag resolves to a new digest. It
+updates only `images.json` and never pushes to `master` directly. The pull
+request is configured to squash-auto-merge once
 repository-required checks and reviews pass, which then triggers publishing.
 To add an OS release, add a record under `distributions` and a reference under
 `variants`; no Dockerfile change is needed when its package contract is
