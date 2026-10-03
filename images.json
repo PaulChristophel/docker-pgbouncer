@@ -39,13 +39,13 @@
     "alma10": {
       "name": "almalinux-kitten",
       "version": "10",
-      "base": "docker.io/almalinux:10-kitten-minimal@sha256:7c29735616ccbae292729a085fea97fb51779e499655b75accfb5e7c81ad57d6",
-      "build_base": "docker.io/almalinux:10-kitten@sha256:a0caa8557573e7a36e8d4f79fb6408278d2ed97abced7560f3e0125212f758b9"
+      "base": "docker.io/almalinux:10-kitten-minimal@sha256:febdb13b57651a5bfe1f450aa786986e96e60851b52663d30bf0dc28b0675af1",
+      "build_base": "docker.io/almalinux:10-kitten@sha256:c2179207794dbbf01a76cb94592a110edd83c2f0371e47f0986973045ff82499"
     },
     "tumbleweed": {
       "name": "tumbleweed",
       "version": "20260914",
-      "base": "docker.io/opensuse/tumbleweed:latest@sha256:c6fa2cc8154cb760cd7323cc6bcd79b1e2defab8a128feb8b212f142a461c123"
+      "base": "docker.io/opensuse/tumbleweed:latest@sha256:102356d2e023b11f483110f332588d614d805e4a4d8b7f1d53163fa47dbd3d6e"
     }
   },
   "variants": [
