@@ -33,19 +33,19 @@
     "rocky10": {
       "name": "rockylinux",
       "version": "10",
-      "base": "docker.io/rockylinux/rockylinux:10-ubi-micro@sha256:8376023a3cfef017584ea52c94b18277296cd4b110886c04360f9b9a3e9c08a3",
+      "base": "docker.io/rockylinux/rockylinux:10-ubi-micro@sha256:31f8985dbd109afcfec0e1634c5bbe31db7aabe49c864fc3bdc216f0411ac48b",
       "build_base": "docker.io/rockylinux/rockylinux:10@sha256:827d37bc128288ccf160ee318bb3cb92d591164cb217e92f8bc61e3982ae1834"
     },
     "alma10": {
       "name": "almalinux-kitten",
       "version": "10",
-      "base": "docker.io/almalinux:10-kitten-minimal@sha256:febdb13b57651a5bfe1f450aa786986e96e60851b52663d30bf0dc28b0675af1",
-      "build_base": "docker.io/almalinux:10-kitten@sha256:c2179207794dbbf01a76cb94592a110edd83c2f0371e47f0986973045ff82499"
+      "base": "docker.io/almalinux:10-kitten-minimal@sha256:482ebbd308f144d8d509834a79c29b5f7c031b9b987339372c6dd65213806c2e",
+      "build_base": "docker.io/almalinux:10-kitten@sha256:e6509c21c3c99e24d97ad3a3c3f16c757f10ec397f79f40568c1bb010d916f21"
     },
     "tumbleweed": {
       "name": "tumbleweed",
       "version": "20260914",
-      "base": "docker.io/opensuse/tumbleweed:latest@sha256:102356d2e023b11f483110f332588d614d805e4a4d8b7f1d53163fa47dbd3d6e"
+      "base": "docker.io/opensuse/tumbleweed:latest@sha256:db7d09c264b72eb95655deb7a696a64d65a0159d1dfb0a4d703347669c709e44"
     }
   },
   "variants": [
