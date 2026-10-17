@@ -79,4 +79,19 @@ jobs:
             pr=$(gh pr list --head "$branch" --base master --state open --json number \
               --jq '.[0].number')
           fi
-          gh pr merge "$pr" --auto --squash --delete-branch
+          head_sha=$(git rev-parse HEAD)
+          merge_error=$(mktemp)
+          trap 'rm -f "$merge_error"' EXIT
+          if gh pr merge "$pr" --auto --squash --delete-branch \
+            --match-head-commit "$head_sha" 2>"$merge_error"; then
+            exit 0
+          fi
+          cat "$merge_error" >&2
+          if grep -Fq 'Protected branch rules not configured for this branch' "$merge_error"; then
+            # GitHub cannot enable deferred auto-merge without branch rules.
+            # Use a normal merge, retaining GitHub's permission and policy checks.
+            gh pr merge "$pr" --squash --delete-branch \
+              --match-head-commit "$head_sha"
+          else
+            exit 1
+          fi
