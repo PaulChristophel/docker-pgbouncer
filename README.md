@@ -31,8 +31,9 @@ PgBouncer is built with Meson and the following features:
 
 - c-ares asynchronous DNS support;
 - LDAP authentication support;
-- OpenSSL TLS support;
-- PostgreSQL client tools for connectivity and health checks.
+- OpenSSL TLS support.
+
+Installed PgBouncer binaries are stripped to reduce runtime size.
 
 PAM and systemd integration are disabled. LDAP support makes PgBouncer's
 global `auth_type = ldap` setting available; LDAP server and bind settings
@@ -55,6 +56,25 @@ All variants use the same CloudNativePG-compatible layout:
 - logs can be written under `/var/log/pgbouncer`;
 - port `6432` is exposed;
 - `/entrypoint.sh` starts `/usr/bin/pgbouncer` with the configured INI file.
+
+PostgreSQL packages and client tools (`psql` and `pg_isready`) are deliberately
+omitted. The entrypoint does not use them. CloudNativePG starts
+`/usr/bin/pgbouncer` through its injected manager and uses a TCP readiness
+probe; its pooler does not require a local PostgreSQL client. Use a separate
+PostgreSQL client container for interactive SQL and connectivity diagnostics.
+Custom exec probes or operational scripts that invoke these tools must be
+adapted before adopting these images.
+
+The reviewed operator code defines the
+[manager command and TCP probe](https://github.com/cloudnative-pg/cloudnative-pg/blob/99e9645df04425d3e6c3c34ea58c53ff022b02ec/pkg/specs/pgbouncer/deployments.go),
+[PgBouncer process startup](https://github.com/cloudnative-pg/cloudnative-pg/blob/99e9645df04425d3e6c3c34ea58c53ff022b02ec/internal/cmd/manager/pgbouncer/run/cmd.go),
+and [in-process SQL monitoring](https://github.com/cloudnative-pg/cloudnative-pg/blob/99e9645df04425d3e6c3c34ea58c53ff022b02ec/pkg/management/pgbouncer/metricsserver/pgbouncer_collector.go).
+
+Runtime packages retain CA certificates, c-ares, libevent, LDAP and OpenSSL
+libraries, timezone data, and the shell/account utilities used to assemble
+the image. Weak dependencies/recommended packages are already disabled where
+supported by the existing package installation commands. Further pruning of
+libraries, timezone data, or account utilities requires additional testing.
 
 ## Tags
 
@@ -148,3 +168,8 @@ and openSUSE Tumbleweed images were built locally with Podman and checked for th
 PgBouncer version, c-ares, OpenSSL, LDAP linkage, PostgreSQL client, and runtime
 UID/GID. LDAP authentication against a live directory is deployment-specific
 and is not exercised by the image build.
+
+Every current Dockerfile also runs `pgbouncer --version` as the final runtime
+user after copying into the scratch image, and checks that `psql` and
+`pg_isready` are absent. This catches missing loader/shared-library dependencies
+in the final filesystem; it does not establish live CloudNativePG integration.

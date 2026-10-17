@@ -58,6 +58,7 @@ RUN CFLAGS="${PGBOUNCER_CFLAGS}" \
     LDFLAGS="${PGBOUNCER_LDFLAGS}" \
     meson setup build \
       --buildtype=release \
+      --strip \
       --prefix=/usr \
       -Dcares=enabled \
       -Dldap=enabled \
@@ -86,7 +87,6 @@ RUN mkdir -p /mnt/rootfs \
       libevent \
       openldap \
       openssl-libs \
-      postgresql \
       shadow-utils \
       tzdata \
  && dnf upgrade -y \
@@ -151,6 +151,9 @@ RUN if getent passwd 998 >/dev/null; then userdel "$(getent passwd 998 | cut -d:
 
 EXPOSE 6432
 USER pgbouncer
+RUN /usr/bin/pgbouncer --version \
+ && ! command -v psql \
+ && ! command -v pg_isready
 
 COPY entrypoint.sh .
 

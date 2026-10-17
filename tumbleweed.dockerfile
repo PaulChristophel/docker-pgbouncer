@@ -56,6 +56,7 @@ RUN CFLAGS="${PGBOUNCER_CFLAGS}" \
     LDFLAGS="${PGBOUNCER_LDFLAGS}" \
     meson setup build \
       --buildtype=release \
+      --strip \
       --prefix=/usr \
       -Dcares=enabled \
       -Dldap=enabled \
@@ -84,10 +85,8 @@ RUN mkdir -p /mnt/rootfs \
       libldap2 \
       libopenssl3 \
       openSUSE-release \
-      postgresql18 \
       shadow \
       timezone \
- && touch /mnt/rootfs/etc/sysconfig/postgresql \
  && zypper --installroot /mnt/rootfs --non-interactive update -y \
  && zypper --installroot /mnt/rootfs --non-interactive clean --all \
  && rm -rf /mnt/rootfs/var/cache/zypp
@@ -146,6 +145,9 @@ COPY --from=pgbouncer-builder /tmp/pgbouncer-install/ /
 
 EXPOSE 6432
 USER pgbouncer
+RUN /usr/bin/pgbouncer --version \
+ && ! command -v psql \
+ && ! command -v pg_isready
 
 COPY entrypoint.sh .
 
