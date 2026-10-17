@@ -40,13 +40,10 @@ still belong in the deployed PgBouncer configuration. See the
 [upstream PgBouncer documentation](https://github.com/pgbouncer/pgbouncer) for
 the available build and authentication options.
 
-The current source is pinned to commit
-`13a344f2625381296fc02e29b986a11be9c6b983`, which introduced the upstream
-Meson build and reports itself as PgBouncer 1.25.2. The published 1.25.2
-release archive predates Meson, so this repository uses that exact post-release
-commit and verifies its archive with the SHA-256 value in `images.json`. This
-pin should move back to a release tag once upstream publishes a Meson-capable
-release.
+The current source is pinned to the PgBouncer 1.26.1 release-tag commit
+`f03e9bf263d7ccd5d1d152a61811bf3258dd6b87` (`pgbouncer_1_26_1`). This release
+includes the Meson build. The repository downloads the exact commit archive
+and verifies it with the SHA-256 value in `images.json`.
 
 ## Runtime contract
 
@@ -64,21 +61,23 @@ All variants use the same CloudNativePG-compatible layout:
 Each OS receives full-version and release-series tags:
 
 ```text
-1.25.2-fedora44
-1.25-fedora44
-1.25.2-fedora45
-1.25-fedora45
-1.25.2-fedora46
-1.25-fedora46
-1.25.2-photon5
-1.25-photon5
-1.25.2-rocky10
-1.25-rocky10
-1.25.2-tumbleweed
-1.25-tumbleweed
+1.26.1-fedora44
+1.26-fedora44
+1.26.1-fedora45
+1.26-fedora45
+1.26.1-fedora46
+1.26-fedora46
+1.26.1-photon5
+1.26-photon5
+1.26.1-rocky10
+1.26-rocky10
+1.26.1-alma10
+1.26-alma10
+1.26.1-tumbleweed
+1.26-tumbleweed
 ```
 
-The Fedora variant also receives the unsuffixed `1.25.2`, `1.25`, and `latest`
+The Fedora variant also receives the unsuffixed `1.26.1`, `1.26`, and `latest`
 tags. Releases additionally publish a workflow-revision-qualified tag for each
 variant. Moving tags are convenient for testing, but production deployments
 should pin an immutable registry digest.
@@ -98,7 +97,7 @@ spec:
   instances: 3
   type: rw
   pgbouncer:
-    image: docker.io/pcm0/pgbouncer:1.25.2-fedora44
+    image: docker.io/pcm0/pgbouncer:1.26.1-fedora44
     poolMode: session
 ```
 
@@ -144,8 +143,8 @@ downloaded source archive.
 
 ## Verification status
 
-Fedora 44, Fedora 45, Fedora 46, Photon, Rocky Linux, and openSUSE Tumbleweed
-images have been built locally with Podman and checked for the expected
+Prior to the 1.26.1 update, Fedora 44, Fedora 45, Fedora 46, Photon, Rocky Linux,
+and openSUSE Tumbleweed images were built locally with Podman and checked for the expected
 PgBouncer version, c-ares, OpenSSL, LDAP linkage, PostgreSQL client, and runtime
 UID/GID. LDAP authentication against a live directory is deployment-specific
 and is not exercised by the image build.

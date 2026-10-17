@@ -2,10 +2,10 @@
   "image": "docker.io/pcm0/pgbouncer",
   "pgbouncer": [
     {
-      "version": "1.25.2",
-      "series": "1.25",
-      "commit": "13a344f2625381296fc02e29b986a11be9c6b983",
-      "sha256": "50a59fd102e6dce89cf05ff7b07c5cb2bd8e74b4ea24ca192b27cc508634c780",
+      "version": "1.26.1",
+      "series": "1.26",
+      "commit": "f03e9bf263d7ccd5d1d152a61811bf3258dd6b87",
+      "sha256": "f140aae505b9b18dfc3497c368f96b56c7adf197d6e66893e85b7cf43fce48e4",
       "channel": "stable"
     }
   ],
