@@ -45,7 +45,7 @@
     "tumbleweed": {
       "name": "tumbleweed",
       "version": "20261015",
-      "base": "docker.io/opensuse/tumbleweed:latest@sha256:1978f5879b857f41ec7cb6e4b5dfe6324acb90491d6179aee218190bb0315a8f"
+      "base": "docker.io/opensuse/tumbleweed:latest@sha256:7b8b74f6b183aaf11a514c3750520b6ea6723176ffed78c655477624d5dcefe1"
     }
   },
   "variants": [
