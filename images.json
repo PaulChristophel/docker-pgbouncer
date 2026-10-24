@@ -28,7 +28,7 @@
     "photon5": {
       "name": "photon",
       "version": "5.0",
-      "base": "docker.io/photon:5.0@sha256:ab4b68e15c8ff6b9c79ba525f696260f772c711761d576dd53bf43c351c9a504"
+      "base": "docker.io/photon:5.0@sha256:3d7e9a35fd55277a056d9e1c54841e6b862a8df7e0caa56fa9c0453969f5329d"
     },
     "rocky10": {
       "name": "rockylinux",
@@ -45,7 +45,7 @@
     "tumbleweed": {
       "name": "tumbleweed",
       "version": "20261015",
-      "base": "docker.io/opensuse/tumbleweed:latest@sha256:c2dc2e1dfcefd411a433b9fa00f368eafef4db17b7623d4b1b1c16d26dd89dc4"
+      "base": "docker.io/opensuse/tumbleweed:latest@sha256:dd9dd83d48156b3c1acbdb2760e1031cfea5238f9f762a4e24db7061e651afae"
     }
   },
   "variants": [
