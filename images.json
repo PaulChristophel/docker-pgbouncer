@@ -13,39 +13,39 @@
     "fedora44": {
       "name": "fedora",
       "version": "44",
-      "base": "docker.io/fedora:44@sha256:43b29f65a41eb9c35e1cd5323e3bdf3b655c2357a9f4f1ff2f9c2798e5045d80"
+      "base": "docker.io/fedora:44@sha256:15da97ed9aa94dd3d92c3925eb89520f6c80e07ea7ee24cba848d1f8b6912b3e"
     },
     "fedora45": {
       "name": "fedora",
       "version": "45",
-      "base": "docker.io/fedora:45@sha256:aacbc26b38361ba0cb3d10f268da40b61b36aed6ed6fe5831a35871636bedb06"
+      "base": "docker.io/fedora:45@sha256:a7d72ba2745b100a3351087472e5ee7b2450af7cf331e7673007e3817612839c"
     },
     "fedora46": {
       "name": "fedora",
       "version": "46",
-      "base": "docker.io/fedora:46@sha256:a9bab18d01cf2c2cf62f3e79c72623405bce14ac062995cc6651a3073c802e41"
+      "base": "docker.io/fedora:46@sha256:78bb31de333664aa76c4bf54306791cd294c0bd4fbcfc4346e2286261de544c4"
     },
     "photon5": {
       "name": "photon",
       "version": "5.0",
-      "base": "docker.io/photon:5.0@sha256:ab4b68e15c8ff6b9c79ba525f696260f772c711761d576dd53bf43c351c9a504"
+      "base": "docker.io/photon:5.0@sha256:3d7e9a35fd55277a056d9e1c54841e6b862a8df7e0caa56fa9c0453969f5329d"
     },
     "rocky10": {
       "name": "rockylinux",
       "version": "10",
-      "base": "docker.io/rockylinux/rockylinux:10-ubi-micro@sha256:b3db63f0bce0957421dcc3349103bfec4f9a18bb6505baea6f90f274beb4f158",
+      "base": "docker.io/rockylinux/rockylinux:10-ubi-micro@sha256:9ccc422dd6c90ad863adb53ed328bbd2de5c63502e8de6715239c0e2caee91ca",
       "build_base": "docker.io/rockylinux/rockylinux:10@sha256:827d37bc128288ccf160ee318bb3cb92d591164cb217e92f8bc61e3982ae1834"
     },
     "alma10": {
       "name": "almalinux-kitten",
       "version": "10",
-      "base": "docker.io/almalinux:10-kitten-minimal@sha256:482ebbd308f144d8d509834a79c29b5f7c031b9b987339372c6dd65213806c2e",
-      "build_base": "docker.io/almalinux:10-kitten@sha256:e6509c21c3c99e24d97ad3a3c3f16c757f10ec397f79f40568c1bb010d916f21"
+      "base": "docker.io/almalinux:10-kitten-minimal@sha256:ae73894c2866ef9b1ecb1214775022e93cb17d0d210aecd54a1bdb2444ce91cc",
+      "build_base": "docker.io/almalinux:10-kitten@sha256:d423f3aefa92fc133660ea2eac2aeb09c874f30d5199fc9cd890f2410b206e1b"
     },
     "tumbleweed": {
       "name": "tumbleweed",
-      "version": "20261015",
-      "base": "docker.io/opensuse/tumbleweed:latest@sha256:87320628e72328e23620f5d9ee319edf7d8f902703689dd72ad374fb74630dfa"
+      "version": "20261106",
+      "base": "docker.io/opensuse/tumbleweed:latest@sha256:e79d8799b19d0a6c8663365a5b047c9e343eed52e09e359853a46a024fd5863f"
     }
   },
   "variants": [
