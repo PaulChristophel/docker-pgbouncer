@@ -10,88 +10,59 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: update-image-pins
+  group: update-pgbouncer-image-configuration
   cancel-in-progress: false
 
 jobs:
-  update:
+  update-image-pins:
     name: Refresh base-image pins
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
+
+      - name: Test base-image updater
+        run: python3 -m unittest discover -s scripts -p 'test_update_image_pins.py'
+
+      - name: Refresh runtime and builder base-image digests
+        run: python3 scripts/update_image_pins.py
+
+      - name: Create configuration update pull request
+        id: create-pr
+        uses: peter-evans/create-pull-request@v8
         with:
-          fetch-depth: 0
+          add-paths: images.json
+          branch: automation/update-image-pins
+          commit-message: "chore: refresh base-image pins"
+          title: "chore: refresh base-image pins"
+          body: |
+            Updates configured runtime and builder base-image digest pins in
+            images.json. PgBouncer versions, source commits, and checksums remain
+            unchanged. Tumbleweed records the UTC date when its base pin changes.
+          delete-branch: true
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
-
-      - name: Refresh tracked base-image digests
-        run: |
-          set -euo pipefail
-          # Resolve every configured base tag independently. Versioned tags can
-          # move too, so checking only references named "latest" is insufficient.
-          while IFS=$'\t' read -r key field base; do
-            image=${base%%@*}
-            digest=$(docker buildx imagetools inspect "$image" --format '{{json .Manifest}}' | jq -r .digest)
-            case "$digest" in
-              sha256:[0-9a-f][0-9a-f]*) ;;
-              *) echo "Could not resolve an OCI digest for $image: $digest" >&2; exit 1 ;;
-            esac
-            jq --arg key "$key" --arg field "$field" --arg image "${image}@${digest}" \
-              '.distributions[$key][$field] = $image' images.json > images.json.next
-            mv images.json.next images.json
-          done < <(jq -r '
-            .distributions | to_entries[] |
-            [.key, "base", .value.base],
-            (if .value.build_base then [.key, "build_base", .value.build_base] else empty end) |
-            @tsv
-          ' images.json)
-
-          jq -e . images.json >/dev/null
-
-      - name: Create pull request when inputs changed
+      - name: Approve and enable automatic merge
+        if: steps.create-pr.outputs.pull-request-number != ''
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.PR_APPROVER_TOKEN }}
+          PR_NUMBER: ${{ steps.create-pr.outputs.pull-request-number }}
         run: |
-          set -euo pipefail
-          if git diff --quiet; then
-            echo "Image inputs are already current."
-            exit 0
-          fi
-          branch="automation/update-image-pins"
-          git switch --create "$branch"
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add images.json
-          git commit -m "chore: refresh base-image pins"
-          # This branch is automation-owned. Force-pushing it refreshes an
-          # existing update PR without touching the protected default branch.
-          git push --force --set-upstream origin "$branch"
-          pr=$(gh pr list --head "$branch" --base master --state open --json number \
-            --jq '.[0].number')
-          if [ -z "$pr" ]; then
-            gh pr create \
-              --base master \
-              --head "$branch" \
-              --title "chore: refresh base-image pins" \
-              --body "Updates every configured runtime and builder base-image digest."
-            pr=$(gh pr list --head "$branch" --base master --state open --json number \
-              --jq '.[0].number')
-          fi
-          head_sha=$(git rev-parse HEAD)
+          gh pr review "$PR_NUMBER" \
+            --repo "$GITHUB_REPOSITORY" \
+            --approve
+          head_sha=$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" \
+            --json headRefOid --jq .headRefOid)
           merge_error=$(mktemp)
           trap 'rm -f "$merge_error"' EXIT
-          if gh pr merge "$pr" --auto --squash --delete-branch \
-            --match-head-commit "$head_sha" 2>"$merge_error"; then
+          if gh pr merge "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" \
+            --auto --squash --delete-branch --match-head-commit "$head_sha" \
+            2>"$merge_error"; then
             exit 0
           fi
           cat "$merge_error" >&2
           if grep -Fq 'Protected branch rules not configured for this branch' "$merge_error"; then
-            # GitHub cannot enable deferred auto-merge without branch rules.
-            # Use a normal merge, retaining GitHub's permission and policy checks.
-            gh pr merge "$pr" --squash --delete-branch \
-              --match-head-commit "$head_sha"
+            gh pr merge "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" \
+              --squash --delete-branch --match-head-commit "$head_sha"
           else
             exit 1
           fi

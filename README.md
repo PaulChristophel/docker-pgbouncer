@@ -151,11 +151,26 @@ The GitHub Actions workflow expands the PgBouncer version and OS variants from
 provenance attestations. It runs for changes on `master`, on a weekly schedule,
 or by manual dispatch.
 
-The weekly **Update base-image pins** workflow opens a pull request when any
-configured runtime or builder base-image tag resolves to a new digest. It
-updates only `images.json` and never pushes to `master` directly. The pull
-request is configured to squash-auto-merge once
-repository-required checks and reviews pass, which then triggers publishing.
+The daily **Update base-image pins** workflow (07:03 UTC) opens or refreshes a
+pull request when a configured runtime or builder base-image tag moves. It
+updates only `images.json`; PgBouncer versions, commits, and source checksums
+stay unchanged. Tumbleweed's date changes only when its base digest changes.
+The updater validates full SHA-256 digests and writes the manifest only after
+all registry lookups succeed.
+
+PR creation uses `github-actions[bot]`. Approval and squash auto-merge use the
+`PR_APPROVER_TOKEN` Actions secret, matching docker-postgresql. Configure a
+fine-grained token from an account allowed to approve and merge, scoped to this
+repository with Contents and Pull requests read/write permissions. Allow Actions
+to create PRs and enable auto-merge in the repository settings. Repository-required
+checks and reviews still apply; where GitHub rejects deferred auto-merge because
+no branch rules exist, the workflow falls back to a normal squash merge with
+an expected-head check. A token-authenticated merge triggers publishing.
+
+For a read-only check, run `python3 scripts/update_image_pins.py --check`.
+Exit codes are 0 for current pins, 1 for available updates, and 2 for errors.
+Omit `--check` to write updates. Docker Buildx is not required by this updater.
+
 To add an OS release, add a record under `distributions` and a reference under
 `variants`; no Dockerfile change is needed when its package contract is
 compatible. The `commit` is a Git revision; the `sha256` is the digest of the

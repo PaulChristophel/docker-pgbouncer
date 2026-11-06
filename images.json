@@ -50,6 +50,26 @@
   },
   "variants": [
     {
+      "dockerfile": "photon.dockerfile",
+      "tag": "photon5",
+      "os": "photon5",
+      "latest": false
+    },
+    {
+      "dockerfile": "rockylinux.dockerfile",
+      "tag": "rocky10",
+      "os": "rocky10",
+      "latest": false
+    },
+    {
+      "dockerfile": "tumbleweed.dockerfile",
+      "tag": "tumbleweed",
+      "os": "tumbleweed",
+      "latest": false
+    }
+  ],
+  "disabled_variants": [
+    {
       "dockerfile": "fedora.dockerfile",
       "tag": "fedora44",
       "os": "fedora44",
@@ -68,27 +88,9 @@
       "latest": false
     },
     {
-      "dockerfile": "photon.dockerfile",
-      "tag": "photon5",
-      "os": "photon5",
-      "latest": false
-    },
-    {
-      "dockerfile": "rockylinux.dockerfile",
-      "tag": "rocky10",
-      "os": "rocky10",
-      "latest": false
-    },
-    {
       "dockerfile": "almalinux.dockerfile",
       "tag": "alma10",
       "os": "alma10",
-      "latest": false
-    },
-    {
-      "dockerfile": "tumbleweed.dockerfile",
-      "tag": "tumbleweed",
-      "os": "tumbleweed",
       "latest": false
     }
   ]
