@@ -33,7 +33,7 @@
     "rocky10": {
       "name": "rockylinux",
       "version": "10",
-      "base": "docker.io/rockylinux/rockylinux:10-ubi-micro@sha256:561f3d11f00a5a07326ff2b19d898539fab3b19fba0600c6420e3b9a0b8cd555",
+      "base": "docker.io/rockylinux/rockylinux:10-ubi-micro@sha256:5d52a87082bfefa960e88b8fb9e7c3e57a24a660b57bf6c50e294c8adc5d45d0",
       "build_base": "docker.io/rockylinux/rockylinux:10@sha256:827d37bc128288ccf160ee318bb3cb92d591164cb217e92f8bc61e3982ae1834"
     },
     "alma10": {
@@ -44,8 +44,8 @@
     },
     "tumbleweed": {
       "name": "tumbleweed",
-      "version": "20261114",
-      "base": "docker.io/opensuse/tumbleweed:latest@sha256:dc714bafa362b1aa58a6fd2fcea9c2469255c1fb8f4433e943e44fd61195c09c"
+      "version": "20261115",
+      "base": "docker.io/opensuse/tumbleweed:latest@sha256:14d536cfce86a7dbab858a4358f74634cf60a4a944e8e00acc89fbc153077e88"
     }
   },
   "variants": [
